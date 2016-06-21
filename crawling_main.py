@@ -1,4 +1,4 @@
-from crawling_utils import get_car_info
+from crawling_utils import GetCarInfo
 
-# get_car_info(19354224)
-get_car_info(19094936)
+# GetCarInfo(19354224)
+GetCarInfo(18498720)
