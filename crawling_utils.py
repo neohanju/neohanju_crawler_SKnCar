@@ -3,6 +3,19 @@ from urllib.request import Request, urlopen, HTTPError, URLError
 from crawling_defines import CarInfo
 
 
+def get_car_list_from_encar(page_number):
+    url = 'http://www.encar.com/fc/fc_carsearchlist.do?carType=for&searchType=model'
+    url_request = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    try:
+        connection = urlopen(url_request)
+    except:
+        print('URL open error with car page')
+        return None
+    list_page = connection.read()
+    connection.close()
+    soup = BeautifulSoup(list_page, 'lxml')
+
+
 def get_car_info_from_encar(car_id):
     # http://www.encar.com/dc/dc_cardetailview.do?carid=18498720
     url = 'http://www.encar.com/dc/dc_cardetailview.do?carid={0}'.format(str(car_id))
@@ -78,17 +91,16 @@ def get_car_info_from_encar(car_id):
         elif '연비' == stat.span.string:
             current_car.fuelEfficiency_ = stat.text.split()[1]
         elif '수입형태' == stat.span.string:    # 제조사 보증 유무
-           if 'X' in stat.text:
+            if 'X' in stat.text:
                 current_car.warranty_ = False
-           else:
-               current_car.warranty_ = True
+            else:
+                current_car.warranty_ = True
 
     # ================================================================
     # 딜러 및 상사 정보 받아오기
     # ================================================================
     # 상사 정보를 불러오기 위해서는 아래 링크를 띄워서 크롤링 해야함
     url = 'http://www.encar.com/dc/dc_carsearchpop.do?method=companyInfoPop&carTypeCd=1&carid={0}'.format(str(car_id))
-    # url = 'http://www.encar.com/dc/dc_carsearchpop.do?method=companyInfoPop&carTypeCd=1&carid=0'
     url_request = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     try:
         connection = urlopen(url_request)
@@ -123,19 +135,67 @@ def get_car_info_from_encar(car_id):
         current_car.option_.additionalOptions_ = options[2].p.string
 
     # ================================================================
-    # 부품 교환 이력 받아오기
+    # 성능 점검 기록 받아오기
     # ================================================================
-    inspection_info = soup.body('div', class_='part inspection')[0]
-    replacements = inspection_info('div', {'class', 'iconarea'})
-    if 0 < len(replacements):
-        replacement_list = replacements[0].find_all('span')
-        for span in replacement_list:
-            current_car.inspection_.repair_.append(span.string)
+    # 성능 점검 기록이 등록되어있다면 아래의 페이지가 제대로 접속될 것임
+    url = 'http://www.encar.com/md/sl/mdsl_regcar.do?method=inspectionView&carid={0}'.format(str(car_id))
+    url_request = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    try:
+        connection = urlopen(url_request)
+    except:
+        current_car.inspection_.exist_ = False
+    else:
+        inspection_page = connection.read()
+        connection.close()
+        inspection_soup = BeautifulSoup(inspection_page, 'lxml')
+        current_car.inspection_.exist_ = True
+
+    # ================================================================
+    # 보험 기록 가져오기
+    # ================================================================
+    # 보험 기록이 등록되어있다면 아래의 페이지가 제대로 접속된 후, 테이블이 읽힐 것
+    # 페이지 자체는 모두 존재함을 확인 함
+    url = 'http://www.encar.com/dc/dc_cardetailview.do?method=kidiFirstPop&carid={0}'.format(str(car_id))
+    url_request = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    current_car.insurance_.exist_ = False
+    try:
+        connection = urlopen(url_request)
+    except:
+        print('no insurance page')
+    else:
+        insurance_page = connection.read()
+        connection.close()
+        insurance_soup = BeautifulSoup(insurance_page, 'lxml')
+        smlist = insurance_soup.body('div', class_='smlist')
+        if 0 < len(smlist):
+            current_car.insurance_.exist_ = True
+            tr_list = smlist[0]('tr')
+            for tr in tr_list:
+                image_src = tr.img.get('src')
+                if '/images/es/car_num2_2.gif' == image_src:  # 자동차 용도 이력
+                    current_car.insurance_.changePurpose_ = tr('td')[1].text.split()[0]
+                elif '/images/es/car_num2_3.gif' == image_src:  # 번호판 / 차주 변경 이력
+                    input_numbers = tr('td')[1].text.split('/ ')
+                    current_car.insurance_.changePlateNumber_ = input_numbers[0]
+                    current_car.insurance_.changeOwner_ = input_numbers[1]
+                elif '/images/es/car_num2_4.gif' == image_src:  # 파손 이력
+                    string_damage = tr('td')[1].text.replace('\n', '')
+                    string_damage = string_damage.replace('\r', '')
+                    string_damage = string_damage.replace('\t', '')
+                    current_car.insurance_.damages_ = string_damage
+                elif '/images/es/car_num2_5.gif' == image_src:
+                    # string_compensation = tr('td')[1].text.replace('\n', '')
+                    # string_compensation = string_compensation.replace('\r', '')
+                    # string_compensation = string_compensation.replace('\t', '')
+                    current_car.insurance_.compensationSelf_ = tr('td')[1].text.split()
+                elif '/images/es/car_num2_6.gif' == image_src:
+                    current_car.insurance_.compensationOther_ = tr('td')[1].text.split()
 
     # ================================================================
     # 차량 설명 받아오기
     # ================================================================
     current_car.description_ = soup.body('div', {'class', 'wrp_car_info'})[0]('div')[0].pre.string
+
 
 
     return current_car

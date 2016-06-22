@@ -149,11 +149,23 @@ class CarOption:
 
 
 class CarInspection:
+    exist_ = False     # 성능 점검 기록의 유무
     repair_ = []        # 수리 이력
     replacement_ = ''   # 교체
     welding_ = ''       # 용접
     erosion_ = ''       # 부식
     accident_ = False  # 사고유무
+
+
+class CarInsurance:
+    exist_ = False          # 보험 기록 유무
+    changePurpose_ = ''      # 용도변경 이력
+    changePlateNumber_ = ''  # 번호판 변경 횟수
+    changeOwner_ = ''        # 소유자 변경 횟수
+    damages_ = ''            # 파손 이력
+    compensationSelf_ = ''   # 자차 보상
+    compensationOther_ = ''  # 타차 가해
+
 
 class CarInfo:
     # 판매 관련
@@ -182,6 +194,7 @@ class CarInfo:
     color_ = 'black'                    # 색상
     option_ = CarOption()               # 차량 옵션
     inspection_ = CarInspection()       # 차량 검사 결과
+    insurance_ = CarInsurance()         # 차량 보험 기록
     # 기타 encar 관련
     description_ = ''                   # 차량 소개글
     carID_ = 18498720                   # DB 등록 번호
