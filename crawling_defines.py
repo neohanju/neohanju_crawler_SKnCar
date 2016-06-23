@@ -1,3 +1,10 @@
+def remove_legacy_characters(str_input):
+    str_input = str_input.replace('\n', '')
+    str_input = str_input.replace('\r', '')
+    str_input = str_input.replace('\t', '')
+    return str_input
+
+
 class CarOption:
     # 옵션 정보는 다음의 링크 참고: http://www.encar.com/dc/dc_carsearchpop.do?method=optionDic&optncd=029&carTypeCd=1
     # 외관
@@ -149,22 +156,75 @@ class CarOption:
 
 
 class CarInspection:
-    exist_ = False     # 성능 점검 기록의 유무
-    repair_ = []        # 수리 이력
-    replacement_ = ''   # 교체
-    welding_ = ''       # 용접
-    erosion_ = ''       # 부식
-    accident_ = False  # 사고유무
+    bExist_ = False     # 성능 점검 기록의 유무
+    strYear_ = '1985'  # 연식
+    strFirstRegistrationDate_ = '1985년 3월 25일'  # 최초등록일
+    nMileage_ = '0'  # 주행거리 및 계기상태
+    strMotorType_ = 'unknown'  # 원동기형식
+    bIllegalRemodeling_ = False  # 불법구조변경
+    strVIN_ = 'unknown'  # 차대번호 (Vehicle Identification Number)
+    strVINMatching_ = 'unknown'  # 동일성확인(차대번호 표기)라고 하나 명확히 무엇인지 모름
+    bDamaged_ = False  # 사고/침수 유무
+    strWarrantyType_ = 'unknown'  # 보증유형
+    strTermOfValidity_ = 'unknown'  # 검사유효기간
 
 
 class CarInsurance:
-    exist_ = False          # 보험 기록 유무
-    changePurpose_ = ''      # 용도변경 이력
-    changePlateNumber_ = ''  # 번호판 변경 횟수
-    changeOwner_ = ''        # 소유자 변경 횟수
-    damages_ = ''            # 파손 이력
-    compensationSelf_ = ''   # 자차 보상
-    compensationOther_ = ''  # 타차 가해
+    bExist_ = False                 # 보험 기록 유무
+    bChangePurpose_ = False         # 용도변경 이력
+    nChangePlateNumber_ = 0         # 번호판 변경 횟수
+    nChangeOwner_ = 0               # 소유자 변경 횟수
+    strDamages_ = ''                # 파손 이력
+    nWrecked_ = 0                   # 전손 횟수
+    nStolen_ = 0                    # 도난 횟수
+    nSubmerged_ = 0                 # 침수 횟수
+    nFullySubmerged_ = 0            # 완전 침수 횟수
+    nPartiallySubmerged_ = 0        # 부분 침수 횟수
+    nAmountCompensationSelf_ = 0    # 자차 보상금
+    nNumCompensationSelf_ = 0       # 자차 보상 횟수
+    nAmountCompensationOthers_ = 0  # 타차 가해 보상금
+    nNumCompensationOthers_ = 0     # 타차 가해 보상 횟수
+
+    def set_change_purpose(self, str_change_purpose):
+        if '없음' not in str_change_purpose:
+            self.bChangePurpose_ = True
+
+    def set_change_plate_number(self, str_change_plate_number):
+        if str_change_plate_number.isdigit():
+            self.nChangePlateNumber_ = int(float(str_change_plate_number))
+
+    def set_change_owner(self, str_change_owner):
+        if str_change_owner.isdigit():
+            self.nChangeOwner_ = int(float(str_change_owner))
+
+    def set_damages(self, str_damage):
+        self.strDamages_ = remove_legacy_characters(str_damage)
+        array_damages = self.strDamages_.split(', ')
+        for cur_string in array_damages:
+            if '전손' in cur_string:
+                self.nWrecked_ = int(float(cur_string.split(' : ')[1]))
+            elif '도난' in cur_string:
+                self.nStolen_ = int(float(cur_string.split(' : ')[1]))
+            elif '침수' in cur_string:
+                self.nFullySubmerged_ = int(float(cur_string.split(' : ')[1]))
+            elif '분손' in cur_string:
+                self.nPartiallySubmerged_ = int(float(cur_string.split(' : ')[1].replace(')', '')))
+            else:
+                print('Unable to parse the string describing damages')
+
+    def set_compensation_self(self, str_compensation_self):
+        if '없음' not in str_compensation_self:
+            str_compensation_self = remove_legacy_characters(str_compensation_self)
+            array_string = str_compensation_self.split(', ')
+            self.nNumCompensationSelf_ = int(float(array_string[0].replace('회', '')))
+            self.nAmountCompensationSelf_ = int(float(array_string[1].replace('원', '').replace(',', '')))
+
+    def set_compensation_others(self, str_compensation_others):
+        if '없음' not in str_compensation_others:
+            str_compensation_others = remove_legacy_characters(str_compensation_others)
+            array_string = str_compensation_others.split(', ')
+            self.nNumCompensationOthers_ = int(float(array_string[0].replace('회', '')))
+            self.nAmountCompensationOthers_ = int(float(array_string[1].replace('원', '').replace(',', '')))
 
 
 class CarInfo:
@@ -173,7 +233,7 @@ class CarInfo:
     state_ = 'Kyung-gi'                 # 차량위치
     plateNumber_ = '02너3020'           # 차량번호
     price_ = '1250'                     # 총 구매비용 (만원단위)
-    warranty_ = False                  # 제조사보증 유무
+    warranty_ = False                   # 제조사보증 유무
     # 차량모델
     maker_ = 'Volkswagen'               # 제조사
     type_ = 'Volkswagen Phaeton'        # 차종

@@ -35,7 +35,7 @@ def get_car_info_from_encar(car_id):
         return None
 
     # ================================================================
-    # head로부터 기본적인 차량 정보 받아오기
+    # 기본적인 차량 정보 받아오기
     # ================================================================
     find_iter = soup.head.find_all('meta')
     if 0 == len(find_iter):
@@ -143,12 +143,12 @@ def get_car_info_from_encar(car_id):
     try:
         connection = urlopen(url_request)
     except:
-        current_car.inspection_.exist_ = False
+        current_car.inspection_.bExist_ = False
     else:
         inspection_page = connection.read()
         connection.close()
         inspection_soup = BeautifulSoup(inspection_page, 'lxml')
-        current_car.inspection_.exist_ = True
+        current_car.inspection_.bExist_ = True
 
     # ================================================================
     # 보험 기록 가져오기
@@ -157,7 +157,7 @@ def get_car_info_from_encar(car_id):
     # 페이지 자체는 모두 존재함을 확인 함
     url = 'http://www.encar.com/dc/dc_cardetailview.do?method=kidiFirstPop&carid={0}'.format(str(car_id))
     url_request = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-    current_car.insurance_.exist_ = False
+    current_car.insurance_.bExist_ = False
     try:
         connection = urlopen(url_request)
     except:
@@ -168,28 +168,22 @@ def get_car_info_from_encar(car_id):
         insurance_soup = BeautifulSoup(insurance_page, 'lxml')
         smlist = insurance_soup.body('div', class_='smlist')
         if 0 < len(smlist):
-            current_car.insurance_.exist_ = True
+            current_car.insurance_.bExist_ = True
             tr_list = smlist[0]('tr')
             for tr in tr_list:
                 image_src = tr.img.get('src')
                 if '/images/es/car_num2_2.gif' == image_src:  # 자동차 용도 이력
-                    current_car.insurance_.changePurpose_ = tr('td')[1].text.split()[0]
+                    current_car.insurance_.set_change_purpose(tr('td')[1].text.split()[0])
                 elif '/images/es/car_num2_3.gif' == image_src:  # 번호판 / 차주 변경 이력
                     input_numbers = tr('td')[1].text.split('/ ')
-                    current_car.insurance_.changePlateNumber_ = input_numbers[0]
-                    current_car.insurance_.changeOwner_ = input_numbers[1]
+                    current_car.insurance_.set_change_plate_number(input_numbers[0].replace('회', ''))
+                    current_car.insurance_.set_change_owner(input_numbers[1].replace('회', ''))
                 elif '/images/es/car_num2_4.gif' == image_src:  # 파손 이력
-                    string_damage = tr('td')[1].text.replace('\n', '')
-                    string_damage = string_damage.replace('\r', '')
-                    string_damage = string_damage.replace('\t', '')
-                    current_car.insurance_.damages_ = string_damage
+                    current_car.insurance_.set_damages(tr('td')[1].text)
                 elif '/images/es/car_num2_5.gif' == image_src:
-                    # string_compensation = tr('td')[1].text.replace('\n', '')
-                    # string_compensation = string_compensation.replace('\r', '')
-                    # string_compensation = string_compensation.replace('\t', '')
-                    current_car.insurance_.compensationSelf_ = tr('td')[1].text.split()
+                    current_car.insurance_.set_compensation_self(tr('td')[1].text)
                 elif '/images/es/car_num2_6.gif' == image_src:
-                    current_car.insurance_.compensationOther_ = tr('td')[1].text.split()
+                    current_car.insurance_.set_compensation_others(tr('td')[1].text)
 
     # ================================================================
     # 차량 설명 받아오기
