@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
-from urllib.request import Request, urlopen, HTTPError, URLError
-from crawling_defines import CarInfo
+from urllib.request import Request, urlopen
+from crawling_defines import CarInfo, remove_legacy_characters
 
 
 def get_car_list_from_encar(page_number):
@@ -44,7 +44,7 @@ def get_car_info_from_encar(car_id):
     current_car = CarInfo(car_id)
     current_car.dealer_ = 'unknown'
     for i in range(len(find_iter)):
-        attribute_name = find_iter[i].attrs.get('name');
+        attribute_name = find_iter[i].attrs.get('name')
         if attribute_name is None:
             continue
         # class 순서상 빈 것: 딜러
@@ -147,8 +147,79 @@ def get_car_info_from_encar(car_id):
     else:
         inspection_page = connection.read()
         connection.close()
-        inspection_soup = BeautifulSoup(inspection_page, 'lxml')
         current_car.inspection_.bExist_ = True
+        inspection_soup = BeautifulSoup(inspection_page, 'lxml')
+        table_body = inspection_soup.body('table', class_='ckst')[0].tbody
+        table_field_names = table_body('th')
+        table_field_values = table_body('td')
+        # 차종에 따라, 사고와 침수가 함께 표시되고, 원동기 형식이 표기되지 않는 테이블들이 있음
+        for i in range(len(table_field_names)):
+            if '연식' in table_field_names[i].text:
+                current_car.inspection_.strYear_ = table_field_values[i].text
+            elif '차대번호' == table_field_names[i].text: # 동일성 확인 부분과 겹치므로, == 로 검사
+                current_car.inspection_.strVIN_ = table_field_values[i].text
+            elif '최초등록일' in table_field_names[i].text:
+                current_car.inspection_.strFirstRegistrationDate_ = table_field_values[i].text
+            elif '동일성확인' in table_field_names[i].text:
+                current_car.inspection_.strVINMatching_ = remove_legacy_characters(table_field_values[i].text)
+            elif '주행거리' in table_field_names[i].text:
+                current_car.inspection_.strVIN_ = table_field_values[i].text
+            elif '변속기종류' in table_field_names[i].text:
+                current_car.inspection_.strVIN_ = remove_legacy_characters(table_field_values[i].text)
+            elif '사고유무' == table_field_names[i].text:
+                if '무' not in table_field_values[i].text:
+                    current_car.inspection_.bDamaged_ = True
+            elif '침수유무' == table_field_names[i].text:
+                if '무' not in table_field_values[i].text:
+                    current_car.inspection_.bSubmerged_ = True
+            elif '사고/침수유무' == table_field_names[i].text:
+                if '무' not in table_field_values[i].text:
+                    print('유사고 표기방법: ' + table_field_values[i].text)  # 이런 경우가 거의 없어서, 크롤링 중 발견하면 report하도록
+            elif '원동기형식' in table_field_names[i].text:
+                current_car.inspection_.strMotorType_ = table_field_values[i].text
+            elif '보증유형' in table_field_names[i].text:
+                current_car.inspection_.strWarrantyType_ = table_field_values[i].text
+            elif '불법구조변경' in table_field_names[i].text:
+                current_car.inspection_.bIllegalRemodeling_ = table_field_values[i].text
+            elif '검사유효기간' in table_field_names[i].text:
+                current_car.inspection_.strTermOfValidity_ = table_field_values[i].text
+
+        # 부품 교환 이력이 있는 것들 찾기
+        repair_inspections = inspection_soup.body('dl', class_='section_cktxt')[0]('dd')
+        if 1 < len(repair_inspections):
+            structure_repair_list = repair_inspections[1]('span', {'class': 'on'})
+            for repair_inst in structure_repair_list:
+                current_car.inspection_.listStructureRepairs_.append(repair_inst.text)
+        if 0 < len(repair_inspections):
+            exterior_repair_list = repair_inspections[0]('span', {'class':'on'})
+            for repair_inst in exterior_repair_list:
+                current_car.inspection_.listExteriorRepairs_.append(repair_inst.text)
+
+        # 개정된 성능 기록표
+        # new_inspection_tables = inspection_soup.body('table', class_='ckstl ckdata')[0]('tbody')
+        # if 0 < len(new_inspection_tables):
+        #     # 원동기 관련
+        #     td_list = new_inspection_tables[0]('td')
+        #     status_name_list = []
+        #     status_value_list = []
+        #     for td_inst in td_list:
+        #         if td_inst.attrs:  # 멀티 rows
+        #             continue
+        #         cur_status = td_inst('span', {'class': 'on'})
+        #         if 0 == len(cur_status):
+        #             status_name_list.append(cur_status[0].text)
+        #         else:
+        #             status_value_list.append(cur_status[0].text)
+        #
+        #     if len(status_name_list) != len(status_value_list):
+        #         print('parsing error at inspection table')
+        #     else:
+        #         for i in range(len(status_name_list)):
+        #             if ''
+
+
+
+
 
     # ================================================================
     # 보험 기록 가져오기
@@ -190,9 +261,8 @@ def get_car_info_from_encar(car_id):
     # ================================================================
     current_car.description_ = soup.body('div', {'class', 'wrp_car_info'})[0]('div')[0].pre.string
 
-
-
     return current_car
 
-#()()
-#('')HAANJU.YOO
+# ()()
+# ('') HAANJU.YOO
+

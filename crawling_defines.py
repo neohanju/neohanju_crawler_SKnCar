@@ -156,22 +156,75 @@ class CarOption:
 
 
 class CarInspection:
-    bExist_ = False     # 성능 점검 기록의 유무
-    strYear_ = '1985'  # 연식
-    strFirstRegistrationDate_ = '1985년 3월 25일'  # 최초등록일
-    nMileage_ = '0'  # 주행거리 및 계기상태
-    strMotorType_ = 'unknown'  # 원동기형식
-    bIllegalRemodeling_ = False  # 불법구조변경
-    strVIN_ = 'unknown'  # 차대번호 (Vehicle Identification Number)
-    strVINMatching_ = 'unknown'  # 동일성확인(차대번호 표기)라고 하나 명확히 무엇인지 모름
-    bDamaged_ = False  # 사고/침수 유무
-    strWarrantyType_ = 'unknown'  # 보증유형
-    strTermOfValidity_ = 'unknown'  # 검사유효기간
+    bExist_ = False                                 # 성능 점검 기록의 유무
+    strYear_ = '1985'                               # 연식
+    strFirstRegistrationDate_ = '1985년 3월 25일'    # 최초등록일
+    nMileage_ = '0'                                 # 주행거리 및 계기상태
+    strMotorType_ = 'unknown'                       # 원동기형식
+    bIllegalRemodeling_ = False                     # 불법구조변경
+    strVIN_ = 'unknown'                             # 차대번호 (Vehicle Identification Number)
+    strVINMatching_ = 'unknown'                     # 동일성확인(차대번호 표기)라고 하나 명확히 무엇인지 모름
+    bDamaged_ = False                               # 사고 유무
+    bSubmerged_ = False                             # 사고 유무
+    strWarrantyType_ = 'unknown'                    # 보증유형
+    strTermOfValidity_ = 'unknown'                  # 검사유효기간
+    # 자동차 상태 표시
+    listExteriorRepairs_ = []                       # 외판
+    listStructureRepairs_ = []                      # 주요 골격
+    # 원동기
+    strEngineOperation_ = 'unknown'                 # 작동상태
+    strEngineOilLeakCylinderHead_ = 'unknown'       # 오일누유 (실린더 헤드)
+    strEngineOilLeakCylinderBlock_ = 'unknown'      # 오일누유 (실린더 블럭)
+    strEngineOilCondition_ = 'unknown'              # 오일 유량 및 오염
+    strEngineCoolantLeakCylinderBlock_ = 'unknown'  # 냉각수누수 (실린더 블럭)
+    strEngineCoolantLeakCylinderHead_ = 'unknown'   # 냉각수누수 (실린더 헤드)
+    strEngineCoolantLeakWaterPump_ = 'unknown'      # 냉각수누수 (워터펌프)
+    strEngineCoolantLeakCooler_ = 'unknown'         # 냉각수누수 (냉각쿨러)
+    strEngineCoolantCondition_ = 'unknown'          # 냉각수량 및 오염
+    strEngineCommonRail_ = 'unknown'                # 고압펌프(커먼레일)
+    # 변속기 (변속기 종류마다 항목이 달라짐: 자동, 수동, 세미오토, CVT, 기타)
+    strATGearboxOilLeak_ = 'unknown'                # 자동 변속기 오일누유
+    strATGearboxOilCondition_ = 'unknown'           # 자동 변속기 오일유량 및 상태
+    strATGearboxCondition_ = 'unknown'              # 자동 변속기 작동상태(공회전)
+    strATGearboxStallTestForward_ = 'unknown'       # 자동 변속기 스톨시험(전진)
+    strATGearboxStallTestBackward_ = 'unknown'      # 자동 변속기 스톨시험(후진)
+    strMTGearboxOilLeak_ = 'unknown'                # 수동 변속기 오일누유
+    strMTGearboxOilCondition_ = 'unknown'           # 수동 변속기 오일유량 및 상태
+    strMTGearboxCondition_ = 'unknown'              # 수동 변속기 작동상태(공회전)
+    strMTGearboxClutch_ = 'unknown'                 # 수동 변속기 기어변속장치
+    # 동력전달
+    strClutchAssembler_ = 'unknown'                 # 클러치 어셈블러
+    strConstantVelocityJoint_ = 'unknown'           # 등속죠인트
+    strThrustShaft_ = 'unknown'                     # 추친축 및 베어링
+    # 조향
+    strSteeringOilCondition_ = 'unknown'            # 동력조향 작동 오일 누유
+    strSteeringGear_ = 'unknown'                    # 스티어링 기어
+    strSteeringPump_ = 'unknown'                    # 스티어링 펌프
+    strTieRodEndBall_ = 'unknown'                   # 스티어링 타이로엔드 및 볼 죠인트
+    # 제동
+    strBreakOilCondition_ = 'unknown'               # 브레이크 오일 유량상태
+    strBreakOilLeak_ = 'unknown'                    # 브레이크 오일 누유
+    strBreakBoosterCondition_ = 'unknown'           # 배력장치 상태
+    # 전기
+    strGeneratorPower_ = 'unknown'                  # 발전기 출력
+    strStartingMotor_ = 'unknown'                   # 시동 모터
+    strWiperMotor_ = 'unknown'                      # 와이퍼 모터 기능
+    strAirConditionMotor_ = 'unknown'               # 실내송풍 모터
+    strRadiatorFanMotor_ = 'unknown'                # 라디에이터 팬 모터
+    # 기타
+    strGasLeakage_ = 'unknown'                      # 연료누출 (LP가스포함)
+    strWindowMotor_ = 'unknown'                     # 윈도우 모터 작동
+    # 배출가스
+    strEmissions_ = 'unknown'                       # 배출가스
+    # 자가진단 사항
+    strSelfInspection_ = 'unknown'                  # 자기진단 사항
+    # 득기사항, 점검자 의견
+    strInspectorOpinion_ = 'unknown'                # 특기사항, 점검자 의견
 
 
 class CarInsurance:
-    bExist_ = False                 # 보험 기록 유무
-    bChangePurpose_ = False         # 용도변경 이력
+    bExist_ = False                # 보험 기록 유무
+    bChangePurpose_ = False        # 용도변경 이력
     nChangePlateNumber_ = 0         # 번호판 변경 횟수
     nChangeOwner_ = 0               # 소유자 변경 횟수
     strDamages_ = ''                # 파손 이력
@@ -284,6 +337,6 @@ class CarInfo:
             self.maker_ = skencar_maker_string
 
 
-#()()
-#('')HAANJU.YOO
+# ()()
+# ('') HAANJU.YOO
 
