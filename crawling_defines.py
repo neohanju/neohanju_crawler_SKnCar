@@ -156,16 +156,16 @@ class CarOption:
 
 
 class CarInspection:
-    bExist_ = False                                 # 성능 점검 기록의 유무
+    bExist_ = False                                # 성능 점검 기록의 유무
     strYear_ = '1985'                               # 연식
-    strFirstRegistrationDate_ = '1985년 3월 25일'    # 최초등록일
+    strFirstRegistrationDate_ = '1985년 3월 25일'   # 최초등록일
     nMileage_ = '0'                                 # 주행거리 및 계기상태
     strMotorType_ = 'unknown'                       # 원동기형식
-    bIllegalRemodeling_ = False                     # 불법구조변경
+    bIllegalRemodeling_ = False                    # 불법구조변경
     strVIN_ = 'unknown'                             # 차대번호 (Vehicle Identification Number)
     strVINMatching_ = 'unknown'                     # 동일성확인(차대번호 표기)라고 하나 명확히 무엇인지 모름
-    bDamaged_ = False                               # 사고 유무
-    bSubmerged_ = False                             # 사고 유무
+    bDamaged_ = False                              # 사고 유무
+    bSubmerged_ = False                            # 사고 유무
     strWarrantyType_ = 'unknown'                    # 보증유형
     strTermOfValidity_ = 'unknown'                  # 검사유효기간
     # 자동차 상태 표시
@@ -173,6 +173,7 @@ class CarInspection:
     listStructureRepairs_ = []                      # 주요 골격
     # 원동기
     strEngineOperation_ = 'unknown'                 # 작동상태
+    strEngineCompression_ = 'unknown'               # 압축상태
     strEngineOilLeakCylinderHead_ = 'unknown'       # 오일누유 (실린더 헤드)
     strEngineOilLeakCylinderBlock_ = 'unknown'      # 오일누유 (실린더 블럭)
     strEngineOilCondition_ = 'unknown'              # 오일 유량 및 오염
@@ -215,16 +216,136 @@ class CarInspection:
     strGasLeakage_ = 'unknown'                      # 연료누출 (LP가스포함)
     strWindowMotor_ = 'unknown'                     # 윈도우 모터 작동
     # 배출가스
-    strEmissions_ = 'unknown'                       # 배출가스
+    arrayEmissions_ = []                            # 배출가스
     # 자가진단 사항
     strSelfInspection_ = 'unknown'                  # 자기진단 사항
     # 득기사항, 점검자 의견
     strInspectorOpinion_ = 'unknown'                # 특기사항, 점검자 의견
 
+    def set_item(self, str_item_name, str_item_value):
+        if str_item_name.startswith('원동기'):
+            if '작동상태' in str_item_name:
+                self.strEngineOperation_ = str_item_value
+            elif '압축상태' in str_item_name:
+                self.strEngineCompression_ = str_item_value
+            elif '오일누유' in str_item_name:
+                if '헤드' in str_item_name:
+                    self.strEngineOilLeakCylinderHead_ = str_item_value
+                elif '블럭' in str_item_name:
+                    self.strEngineOilLeakCylinderBlock_ = str_item_value
+                else:
+                    print('unknown inspection item: ' + str_item_name)
+            elif '유량' in str_item_name:
+                self.strEngineOilCondition_ = str_item_value
+            elif '냉각수누수' in str_item_name:
+                if '헤드' in str_item_name:
+                    self.strEngineCoolantLeakCylinderBlock_ = str_item_value
+                elif '블럭' in str_item_name:
+                    self.strEngineCoolantLeakCylinderHead_ = str_item_value
+                elif '워터펌프' in str_item_name:
+                    self.strEngineCoolantLeakWaterPump_ = str_item_value
+                elif '냉각쿨러' in str_item_name:
+                    self.strEngineCoolantLeakCooler_ = str_item_value
+                elif '냉각수량' in str_item_name:
+                    self.strEngineCoolantCondition_ = str_item_value
+                else:
+                    print('unknown inspection item: ' + str_item_name)
+            elif '고압펌프' in str_item_name:
+                self.strEngineCommonRail_ = str_item_value
+            else:
+                print('unknown inspection item: ' + str_item_name)
+        elif str_item_name.startswith('변속기'):
+            if '자동변속기' in str_item_name:
+                if '오일누유' in str_item_name:
+                    self.strATGearboxOilLeak_ = str_item_value
+                elif '오일유량' in str_item_name:
+                    self.strATGearboxOilCondition_ = str_item_value
+                elif '작동상태' in str_item_name:
+                    self.strATGearboxCondition_ = str_item_value
+                elif '스톨시험(전진)' in str_item_name:
+                    self.strATGearboxStallTestForward_ = str_item_value
+                elif '스톨시험(후진)' in str_item_name:
+                    self.strATGearboxStallTestBackward_ = str_item_value
+                else:
+                    print('unknown inspection item: ' + str_item_name)
+            elif '수동변속기' in str_item_name:
+                if '오일누유' in str_item_name:
+                    self.strMTGearboxOilLeak_ = str_item_value
+                elif '오일유량' in str_item_name:
+                    self.strMTGearboxOilCondition_ = str_item_value
+                elif '작동상태' in str_item_name:
+                    self.strMTGearboxCondition_ = str_item_value
+                elif '기어변속장치' in str_item_name:
+                    self.strMTGearboxClutch_ = str_item_value
+                else:
+                    print('unknown inspection item: ' + str_item_name)
+            else:
+                print('unknown inspection item: ' + str_item_name)
+        elif str_item_name.startswith('동력전달'):
+            if '클러치' in str_item_name:
+                self.strClutchAssembler_ = str_item_value
+            elif '등속죠인트' in str_item_name:
+                self.strConstantVelocityJoint_ = str_item_value
+            elif '추진축' in str_item_name:
+                self.strThrustShaft_ = str_item_value
+            else:
+                print('unknown inspection item: ' + str_item_name)
+        elif str_item_name.startswith('조향'):
+            if '작동상태' in str_item_name:
+                if '스티어링기어' in str_item_name:
+                    self.strSteeringGear_ = str_item_value
+                elif '스티어링펌프' in str_item_name:
+                    self.strSteeringPump_ = str_item_value
+                elif '타이로드엔드' in str_item_name:
+                    self.strTieRodEndBall_ = str_item_value
+                else:
+                    print('unknown inspection item: ' + str_item_name)
+            elif '동력조향작동' in str_item_name:
+                self.strSteeringOilCondition_ = str_item_value
+            else:
+                print('unknown inspection item: ' + str_item_name)
+        elif str_item_name.startswith('제동'):
+            if '유량상태' in str_item_name:
+                self.strBreakOilCondition_ = str_item_value
+            elif '오일누유' in str_item_name:
+                self.strBreakOilLeak_ = str_item_value
+            elif '배력장치' in str_item_name:
+                self.strBreakBoosterCondition_ = str_item_value
+            else:
+                print('unknown inspection item: ' + str_item_name)
+        elif str_item_name.startswith('전기'):
+            if '발전기' in str_item_name:
+                self.strGeneratorPower_ = str_item_value
+            elif '시동 모터' in str_item_name:
+                self.strStartingMotor_ = str_item_value
+            elif '와이퍼' in str_item_name:
+                self.strWiperMotor_ = str_item_value
+            elif '실내송풍' in str_item_name:
+                self.strAirConditionMotor_ = str_item_value
+            elif '라디에이터' in str_item_name:
+                self.strRadiatorFanMotor_ = str_item_value
+            else:
+                print('unknown inspection item: ' + str_item_name)
+        elif str_item_name.startswith('기타'):
+            if '연료누출' in str_item_name:
+                self.strGasLeakage_ = str_item_value
+            elif '윈도우' in str_item_name:
+                self.strWindowMotor_ = str_item_value
+            else:
+                print('unknown inspection item: ' + str_item_name)
+        elif str_item_name.startswith('배출가스'):
+            self.arrayEmissions_.append(str_item_value)
+        elif str_item_name.startswith('자기진단'):
+            self.strSelfInspection_ = str_item_value
+        elif str_item_name.startswith('특기사항'):
+            self.strInspectorOpinion_ = str_item_value
+        else:
+            print('unknown inspection item: ' + str_item_name)
+
 
 class CarInsurance:
-    bExist_ = False                # 보험 기록 유무
-    bChangePurpose_ = False        # 용도변경 이력
+    bExist_ = False                 # 보험 기록 유무
+    bChangePurpose_ = False         # 용도변경 이력
     nChangePlateNumber_ = 0         # 번호판 변경 횟수
     nChangeOwner_ = 0               # 소유자 변경 횟수
     strDamages_ = ''                # 파손 이력
@@ -282,41 +403,77 @@ class CarInsurance:
 
 class CarInfo:
     # 판매 관련
-    dealer_ = 'Mr.Dealer'               # 소유딜러(상사명)
-    state_ = 'Kyung-gi'                 # 차량위치
-    plateNumber_ = '02너3020'           # 차량번호
-    price_ = '1250'                     # 총 구매비용 (만원단위)
-    warranty_ = False                   # 제조사보증 유무
+    dealer_ = 'unknown'                   # 소유딜러(상사명)
+    state_ = 'unknown'                    # 차량위치
+    plateNumber_ = 'unknown'              # 차량번호
+    price_ = 'unknown'                    # 총 구매비용 (만원단위)
+    leaseCost_ = 'unknown'                # 리스 총액
+    leaseMonthlyPay_ = 'unknown'          # 리스 월 납부 비용
+    leaseLeftMonths_ = 'unknown'          # 리스 남은 월
+    leaseTotalMonths_ = 'unknown'         # 리스 총 월 수
+    warranty_ = False                     # 제조사보증 유무
     # 차량모델
-    maker_ = 'Volkswagen'               # 제조사
-    type_ = 'Volkswagen Phaeton'        # 차종
-    modelCode_ = 'PT'                   # 차량코드
-    model_ = 'V8 4.2'                   # 모델
-    trim_ = 'V8 4.2 NWB VW611'          # 트림
-    transmission_ = 'auto'              # 변속기
-    fuel_ = 'gas'                       # 연료
-    category_ = 'full_size'             # 분류
-    displacement_ = '4000'              # 배기량
-    fuelEfficiency_ = '9.0'             # 연비
+    maker_ = 'unknown'                    # 제조사
+    type_ = 'unknown'                     # 차종
+    modelCode_ = 'unknown'                # 차량코드
+    model_ = 'unknown'                    # 모델
+    trim_ = 'unknown'                     # 트림
+    transmission_ = 'unknown'             # 변속기
+    fuel_ = 'unknown'                     # 연료
+    category_ = 'unknown'                 # 분류
+    displacement_ = 'unknown'             # 배기량
+    fuelEfficiency_ = 'unknown'           # 연비
     # 등록정보
-    year_ = '2006'                      # 연식
-    month_ = '05'                       # 출시월
+    year_ = 'unknown'                     # 연식
+    month_ = 'unknown'                    # 출시월
     # 차량 상태
-    mileage_ = '0'                      # 주행거리
-    condition_ = 'used'                 # 상태
-    color_ = 'black'                    # 색상
-    option_ = CarOption()               # 차량 옵션
-    inspection_ = CarInspection()       # 차량 검사 결과
-    insurance_ = CarInsurance()         # 차량 보험 기록
+    mileage_ = 'unknown'                  # 주행거리
+    condition_ = 'unknown'                # 상태
+    color_ = 'unknown'                    # 색상
+    option_ = CarOption()                 # 차량 옵션
+    inspection_ = CarInspection()         # 차량 검사 결과
+    insurance_ = CarInsurance()           # 차량 보험 기록
     # 기타 encar 관련
-    description_ = ''                   # 차량 소개글
-    carID_ = 18498720                   # DB 등록 번호
+    description_ = 'unknown'              # 차량 소개글
+    carID_ = 18498720                     # DB 등록 번호
+    articleRegistrationData_ = 'unknown'  # 판매글 등록일
 
     def __init__(self, car_id):
         self.carID_ = car_id
 
     def __del__(self):
         return None
+
+    def set_info(self, str_form_name, str_value):
+        if 'yr' == str_form_name:
+            self.year_ = str_value[0:3]
+            self.month_ = str_value[4:5]
+        elif 'crrgsnb' == str_form_name:
+            self.plateNumber_ = str_value
+        elif 'mlg' == str_form_name:
+            self.mileage_ = str_value
+        elif 'dsp' == str_form_name:
+            self.displacement_ = str_value
+        elif 'trns' == str_form_name:
+            self.transmission_ = str_value
+        elif 'clr' == str_form_name:
+            self.color_ = str_value
+        elif 'whatfuel' == str_form_name:
+            self.fuel_ = str_value
+        elif 'frstrgsdt' == str_form_name:
+            self.articleRegistrationData_ = str_value
+        elif 'mnfcnm' == str_form_name:
+            self.maker_ = str_value
+        elif 'mdlnm' == str_form_name:
+            self.type_ = str_value
+        elif 'clsheadnm' == str_form_name:
+            self.model_ = str_value
+        elif 'clsdetailnm' == str_form_name:
+            self.trim_ = str_value
+        elif 'dmndprc' == str_form_name:
+            self.price_ = str_value
+
+
 
     # def set_category(self, korean_string):
     #     if '대형차' == korean_string:
