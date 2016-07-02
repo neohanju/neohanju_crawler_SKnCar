@@ -1,30 +1,54 @@
 from bs4 import BeautifulSoup
 from urllib.request import Request, urlopen
 from crawling_defines import CarInfo, remove_legacy_characters
+from selenium import webdriver
 
 
 def get_car_list_from_encar(page_number):
+
+    # scrape the page with selenium
     url = 'http://www.encar.com/fc/fc_carsearchlist.do?carType=for&searchType=model&wtClick_index=251#!%7B%22action%22%3A%22%22%2C%22toggle%22%3A%7B%7D%2C%22layer%22%3A%22%22%2C%22sort%22%3A%22ModifiedDate%22%2C%22page%22%3A{0}%2C%22limit%22%3A20%7D'.format(page_number)
-    url_request = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    phantomjs_path = r'D:\Workspace\[LIBRARY]\[WEB]\phantomjs-2.1.1-windows\bin\phantomjs.exe'
     try:
-        connection = urlopen(url_request)
+        # driver = webdriver.Remote("http://localhost:4444/wd/hub", webdriver.DesiredCapabilities.HTMLUNIT.copy())
+        driver = webdriver.PhantomJS(phantomjs_path)
     except (ValueError, KeyError) as e:
-        print('URL open error with car page')
+        print('Driver error with Chrome browser')
+        return None
+    else:
+        try:
+            driver.get(url)
+        except (ValueError, KeyError) as e:
+            print('URL open error with car page')
+            return None
+    list_page = driver.page_source
+    try:
+        # because of bugs in the 'service', pass for quit method is demanded
+        driver.quit()
+    except AttributeError:
+        pass
+    soup = BeautifulSoup(list_page, 'lxml')
+
+    # validate the page
+    no_car_message = soup('p', {'class': 'message', 'title': '등록차량이 없습니다. 다른 조건으로 검색하세요.'})
+    if 0 < len(no_car_message):
+        print('there is no car list')
         return None
 
-    list_page = connection.read()
-    connection.close()
-    soup = BeautifulSoup(list_page, 'lxml')
+    # get gar list table
     car_list = soup.body('tbody', {'id': 'sr_normal'})
     if 0 == len(car_list):
         return None
 
+    # get URLs of each car page and parse each page into 'result_car' instance
     result_car_list = []
     for tr in car_list[0]('td', {'class': 'inf'}):
-        page_url = 'http://www.encar.com' + list.a.attrs.get('href')
+        page_url = 'http://www.encar.com' + tr.a.get("href")
         result_car = get_car_info_from_encar(page_url)
         if result_car is not None:
             result_car_list.append(result_car)
+
+    return result_car_list
 
 
 def get_car_info_from_encar(page_url):

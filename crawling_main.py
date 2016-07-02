@@ -10,5 +10,12 @@ from crawling_utils import get_car_info_from_encar, get_car_list_from_encar
 # info = get_car_info_from_encar(19018207)  # 리스 차량
 # info = get_car_info_from_encar(19267048)  # 기타 분류 차량. 구체적으로 뭘까?
 
-result_cars = get_car_list_from_encar(1)
-a = 'end'
+
+def main_crawling():
+    car_lists = []
+    for page_number in range(500):
+        cur_car_list = get_car_list_from_encar(page_number)
+        if cur_car_list is None:
+            break
+        car_lists.append(cur_car_list)
+

@@ -64,9 +64,10 @@ class CarOption:
         return None
 
     def set_option(self, str_option_name, flag=True):
+        str_option_name = str_option_name.replace(' ', '')
         if 'HID' in str_option_name:
             self.HID_ = flag
-        elif '전동접이 사이드미러' in str_option_name:
+        elif '전동접이사이드미러' in str_option_name:
             self.powerMirror_ = flag
         elif '선루프' in str_option_name:
             self.sunroof_ = flag
@@ -74,25 +75,25 @@ class CarOption:
             self.roofRack_ = flag
         elif '알루미늄휠' in str_option_name:
             self.alloyWheels_ = flag
-        elif '스티어링 휠 리모컨' in str_option_name:
+        elif '스티어링휠리모컨' in str_option_name:
             self.steeringWheelRC_ = flag
-        elif '파워 스티어링' in str_option_name:
+        elif '파워스티어링' in str_option_name:
             self.powerSteeringWheel_ = flag
         elif 'ECM' in str_option_name:
             self.ECM_ = flag
         elif '가죽' in str_option_name:
             self.leatherSeats_ = flag
-        elif '전동 시트(운전석)' in str_option_name:
+        elif '전동시트(운전석)' in str_option_name:
             self.powerDriverSeat_ = flag
-        elif '전동 시트(동승석)' in str_option_name:
+        elif '전동시트(동승석)' in str_option_name:
             self.powerAssistantSeat_ = flag
-        elif '열선 시트(앞좌석)' in str_option_name:
+        elif '열선시트(앞좌석)' in str_option_name:
             self.heatedSeatFront_ = flag
-        elif '열선 시트(뒷좌석)' in str_option_name:
+        elif '열선시트(뒷좌석)' in str_option_name:
             self.heatedSeatRear_ = flag
-        elif '메모리 시트' in str_option_name:
+        elif '메모리시트' in str_option_name:
             self.memorySeat_ = flag
-        elif '통풍 시트(앞좌석)' in str_option_name:
+        elif '통풍시트(앞좌석)' in str_option_name:
             self.ventilationSeat_ = flag
         elif '에어백(운전석)' in str_option_name:
             self.airbagDriver_ = flag
@@ -100,11 +101,11 @@ class CarOption:
             self.airbagAssistant_ = flag
         elif '에어백(사이드)' in str_option_name:
             self.airbagSide_ = flag
-        elif '커튼 에어백' in str_option_name:
+        elif '커튼에어백' in str_option_name:
             self.airbagCurtain_ = flag
-        elif '후방 감지센서' in str_option_name:
+        elif '후방감지센서' in str_option_name:
             self.rearOccupantSensing_ = flag
-        elif '후방 카메라' in str_option_name:
+        elif '후방카메라' in str_option_name:
             self.rearCamera_ = flag
         elif 'ABS' in str_option_name:
             self.ABS_ = flag
@@ -116,19 +117,19 @@ class CarOption:
             self.ECS_ = flag
         elif 'TPMS' in str_option_name:
             self.TPMS_ = flag
-        elif '파워 도어록' in str_option_name:
+        elif '파워도어록' in str_option_name:
             self.powerDoorLock_ = flag
-        elif '자동 에어컨' in str_option_name:
+        elif '자동에어컨' in str_option_name:
             self.autoAirconditioner_ = flag
-        elif '무선 도어잠금장치' in str_option_name:
+        elif '무선도어잠금장치' in str_option_name:
             self.remoteDoorLock_ = flag
-        elif '스마트 키' in str_option_name:
+        elif '스마트키' in str_option_name:
             self.smartKey_ = flag
-        elif '파워 트렁크' in str_option_name:
+        elif '파워트렁크' in str_option_name:
             self.powerTrunk_ = flag
-        elif '파워 윈도우' in str_option_name:
+        elif '파워윈도우' in str_option_name:
             self.powerWindow_ = flag
-        elif '크루즈 컨트롤' in str_option_name:
+        elif '크루즈컨트롤' in str_option_name:
             self.cruiseControl_ = flag
         elif '네비게이션' in str_option_name:
             self.navigation_ = flag
@@ -136,13 +137,13 @@ class CarOption:
             self.handsFreeExt_ = flag
         elif '하이패스' in str_option_name:
             self.hipass_ = flag
-        elif 'CD 플레이어' in str_option_name:
+        elif 'CD플레이어' in str_option_name:
             self.CDPlayer_ = flag
-        elif 'CD 체인저' in str_option_name:
+        elif 'CD체인저' in str_option_name:
             self.CDChanger_ = flag
-        elif 'AV 시스템' in str_option_name:
+        elif 'AV시스템' in str_option_name:
             self.AVSystem_ = flag
-        elif '뒷좌석 TV' in str_option_name:
+        elif '뒷좌석TV' in str_option_name:
             self.rearSeatTV_ = flag
         elif 'AUX' in str_option_name:
             self.AUX_ = flag
@@ -223,6 +224,7 @@ class CarInspection:
     strInspectorOpinion_ = 'unknown'                # 특기사항, 점검자 의견
 
     def set_item(self, str_item_name, str_item_value):
+        str_item_name = str_item_name.replace(' ', '')
         if str_item_name.startswith('원동기'):
             if '작동상태' in str_item_name:
                 self.strEngineOperation_ = str_item_value
@@ -292,15 +294,15 @@ class CarInspection:
                 print('unknown inspection item: ' + str_item_name)
         elif str_item_name.startswith('조향'):
             if '작동상태' in str_item_name:
-                if '스티어링기어' in str_item_name:
+                if '기어' in str_item_name:
                     self.strSteeringGear_ = str_item_value
-                elif '스티어링펌프' in str_item_name:
+                elif '펌프' in str_item_name:
                     self.strSteeringPump_ = str_item_value
                 elif '타이로드엔드' in str_item_name:
                     self.strTieRodEndBall_ = str_item_value
                 else:
                     print('unknown inspection item: ' + str_item_name)
-            elif '동력조향작동' in str_item_name:
+            elif '동력조향' in str_item_name:
                 self.strSteeringOilCondition_ = str_item_value
             else:
                 print('unknown inspection item: ' + str_item_name)
@@ -316,7 +318,7 @@ class CarInspection:
         elif str_item_name.startswith('전기'):
             if '발전기' in str_item_name:
                 self.strGeneratorPower_ = str_item_value
-            elif '시동 모터' in str_item_name:
+            elif '시동모터' in str_item_name:
                 self.strStartingMotor_ = str_item_value
             elif '와이퍼' in str_item_name:
                 self.strWiperMotor_ = str_item_value
