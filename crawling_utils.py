@@ -1,13 +1,18 @@
 from bs4 import BeautifulSoup
+from urllib import parse
 from urllib.request import Request, urlopen
-from crawling_defines import CarInfo, remove_legacy_characters
 from selenium import webdriver
+from crawling_defines import CarInfo, CarSpecification, remove_legacy_characters, list_target_makers
+import time
+import json
 
 
-def get_car_list_from_encar(page_number):
+def get_car_list_from_list_page(page_number):
 
     # scrape the page with selenium
-    url = 'http://www.encar.com/fc/fc_carsearchlist.do?carType=for&searchType=model&wtClick_index=251#!%7B%22action%22%3A%22%22%2C%22toggle%22%3A%7B%7D%2C%22layer%22%3A%22%22%2C%22sort%22%3A%22ModifiedDate%22%2C%22page%22%3A{0}%2C%22limit%22%3A20%7D'.format(page_number)
+    url = 'http://www.encar.com/fc/fc_carsearchlist.do?carType=for&searchType=model&wtClick_index=251#!%7B%22action' \
+          '%22%3A%22%22%2C%22toggle%22%3A%7B%7D%2C%22layer%22%3A%22%22%2C%22sort%22%3A%22ModifiedDate%22%2C%22' \
+          'page%22%3A{0}%2C%22limit%22%3A20%7D'.format(page_number)
     phantomjs_path = r'D:\Workspace\[LIBRARY]\[WEB]\phantomjs-2.1.1-windows\bin\phantomjs.exe'
     try:
         # driver = webdriver.Remote("http://localhost:4444/wd/hub", webdriver.DesiredCapabilities.HTMLUNIT.copy())
@@ -44,14 +49,14 @@ def get_car_list_from_encar(page_number):
     result_car_list = []
     for tr in car_list[0]('td', {'class': 'inf'}):
         page_url = 'http://www.encar.com' + tr.a.get("href")
-        result_car = get_car_info_from_encar(page_url)
+        result_car = get_car_info_from_car_detail_page(page_url)
         if result_car is not None:
             result_car_list.append(result_car)
 
     return result_car_list
 
 
-def get_car_info_from_encar(page_url):
+def get_car_info_from_car_detail_page(page_url):
 
     # 자동차 페이지
     url_request = Request(page_url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -326,9 +331,144 @@ def get_car_info_from_encar(page_url):
     return current_car
 
 
-def get_car_info_from_encar_with_car_id(car_id):
-    page_url = 'http://www.encar.com/dc/dc_cardetailview.do?carid={0}'.format(str(car_id))
-    return get_car_info_from_encar(page_url)
+def extract_list(soup_list, str_object_name):
+    result_list = []
+    for object in soup_list:
+        number = object.get('value')
+        if '' == number:
+            continue
+        name = object.text
+        result_list.append({str_object_name: name, 'no': number})
+    return result_list
+
+
+def handling_dash(str_input):
+    if '-' in str_input:
+        return ''
+    else:
+        return str_input
+
+
+def get_car_specification(start_year, end_year):
+    base_url = 'http://www.bobaedream.co.kr/mycar/popup/popCatalogSpec.php'
+    url_request = Request(base_url, headers={'User-Agent': 'Mozilla/5.0'})
+    try:
+        connection = urlopen(url_request)
+    except (ValueError, KeyError) as e:
+        print('URL open error with car specification page')
+        return None
+    default_page = connection.read()
+    connection.close()
+    soup = BeautifulSoup(default_page, 'lxml')
+
+    # 제조사 리스트 parsing
+    maker_dics_candidate = extract_list(soup('select', {'name': 'maker_no'})[0]('option'), 'maker')
+
+    # 관심 제조사만 추리기
+    maker_dics = []
+    for maker_dic in maker_dics_candidate:
+        if maker_dic.get('maker') in list_target_makers:
+            maker_dics.append(maker_dic)
+
+    # 모델 받아오기
+    for maker_dic in maker_dics:
+        print('now get the car infos of {0}'.format(maker_dic.get('maker')))
+        maker_page_url = base_url + '?maker_no={0}'.format(maker_dic.get('no'))
+        try:
+            connection = urlopen(maker_page_url)
+        except (ValueError, KeyError) as e:
+            print('URL open error with maker page')
+            return None
+        maker_page = connection.read()
+        connection.close()
+        maker_soup = BeautifulSoup(maker_page, 'lxml')
+        model_dics = extract_list(maker_soup('select', {'name': 'model_no'})[0]('option'), 'model')
+
+        # 등급 받아오기
+        for model_dic in model_dics:
+            print('\tget the car levels of {0}'.format(model_dic.get('model')))
+            model_page_url = maker_page_url + '&model_no={0}'.format(model_dic.get('no'))
+            try:
+                connection = urlopen(model_page_url)
+            except (ValueError, KeyError) as e:
+                print('URL open error with maker page')
+                return None
+            model_page = connection.read()
+            connection.close()
+            model_soup = BeautifulSoup(model_page, 'lxml')
+            level_dics = extract_list(model_soup('select', {'name': 'level_no'})[0]('option'), 'level')
+
+            # 세부 등급 받아오기
+            for level_dic in level_dics:
+                level_page_url = model_page_url + '&level_no={0}'.format(level_dic.get('no'))
+                try:
+                    connection = urlopen(level_page_url)
+                except (ValueError, KeyError) as e:
+                    print('URL open error with maker page')
+                    return None
+                level_page = connection.read()
+                connection.close()
+                level_soup = BeautifulSoup(level_page, 'lxml')
+                level_dic['level2'] = extract_list(level_soup('select', {'name': 'level2_no'})[0]('option'), 'level2')
+
+            model_dic['levels'] = level_dics
+        maker_dic['models'] = model_dics
+        time.sleep(3)
+
+    # 변속기는 자동/수동, 연도는 start_year ~ end_year까지
+    str_transmission = [parse.quote('자동'), parse.quote('수동')]
+    car_specifications = []
+    for maker in maker_dics:
+        for model in maker['models']:
+            for level in model['levels']:
+                for level2 in level['level2']:
+                    for transmission in str_transmission:
+                        for year in range(start_year, end_year):
+                            test_page_url = base_url + '?maker_no={0}&model_no={1}&level_no={2}&level2_no={3}&' \
+                                                       'method={4}&year={5}'.format(maker.get('no'), model.get('no'),
+                                                                                    level.get('no'), level2.get('no'),
+                                                                                    transmission, str(year))
+                            try:
+                                connection = urlopen(test_page_url)
+                            except (ValueError, KeyError) as e:
+                                print('URL open error with maker page')
+                                return None
+                            spec_page = connection.read()
+                            connection.close()
+                            spec_soup = BeautifulSoup(spec_page, 'lxml')
+                            car_title = spec_soup('div', {'class': 'carlogo'})[0].text
+                            if maker.get('maker') not in car_title:
+                                continue
+
+                            # 차량 기본 정보
+                            cur_car_specification = CarSpecification()
+                            cur_car_specification.maker = maker.get('maker')
+                            cur_car_specification.model = model.get('model')
+                            cur_car_specification.variant = level.get('level')
+                            cur_car_specification.trim = handling_dash(level2.get('level2'))
+                            cur_car_specification.year = year
+                            # 본격적으로 제원 긁어오기
+                            tables = spec_soup('div', {'class': 'popTableDv'})[0]('table')
+                            # 물리적 치수는 테이블 2에
+                            size_table_cells = tables[2]('td')
+                            cur_car_specification.length = handling_dash(size_table_cells[0].text)
+                            cur_car_specification.width = handling_dash(size_table_cells[2].text)
+                            cur_car_specification.height = handling_dash(size_table_cells[4].text)
+                            cur_car_specification.wheelbase = handling_dash(size_table_cells[6].text)
+                            # 연료 및 성능은 테이블 3에
+                            performance_table_cells = tables[3]('td')
+                            cur_car_specification.displacement = handling_dash(performance_table_cells[4].text)
+                            cur_car_specification.fuelType = handling_dash(performance_table_cells[0].text)
+                            cur_car_specification.fuelConsumption = handling_dash(performance_table_cells[14].text)
+                            # 변속기는 테이블 4에
+                            cur_car_specification.transmission = handling_dash(tables[4]('td')[0].text)
+
+                            car_specifications.append(cur_car_specification)
+
+    with open('car_specs.txt', 'w') as outfile:
+        json.dump([car_spec_class.__dict__ for car_spec_class in car_specifications], outfile)
+
+    # 모델을 크롤링
 
 
 # ()()

@@ -1,0 +1,1 @@
+[{"length": "3860mm", "transmission": "\uc218\ub3d9 5\ub2e8 ", "width": "1701mm", "height": "1700mm", "wheelbase": "2209mm", "variant": "1.6 4WD", "maker": "GM", "displacement": "1600 cc", "trim": "", "fuelConsumption": "", "model": "\ud2b8\ub799\ucee4", "fuelType": "\uac00\uc194\ub9b0 ", "year": 2016}]

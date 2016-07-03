@@ -157,16 +157,16 @@ class CarOption:
 
 
 class CarInspection:
-    bExist_ = False                                # 성능 점검 기록의 유무
-    strYear_ = '1985'                               # 연식
-    strFirstRegistrationDate_ = '1985년 3월 25일'   # 최초등록일
-    nMileage_ = '0'                                 # 주행거리 및 계기상태
+    bExist_ = False                                 # 성능 점검 기록의 유무
+    strYear_ = 'unknown'                            # 연식
+    strFirstRegistrationDate_ = 'unknown'           # 최초등록일
+    nMileage_ = 'unknown'                           # 주행거리 및 계기상태
     strMotorType_ = 'unknown'                       # 원동기형식
-    bIllegalRemodeling_ = False                    # 불법구조변경
+    bIllegalRemodeling_ = False                     # 불법구조변경
     strVIN_ = 'unknown'                             # 차대번호 (Vehicle Identification Number)
     strVINMatching_ = 'unknown'                     # 동일성확인(차대번호 표기)라고 하나 명확히 무엇인지 모름
-    bDamaged_ = False                              # 사고 유무
-    bSubmerged_ = False                            # 사고 유무
+    bDamaged_ = False                               # 사고 유무
+    bSubmerged_ = False                             # 사고 유무
     strWarrantyType_ = 'unknown'                    # 보증유형
     strTermOfValidity_ = 'unknown'                  # 검사유효기간
     # 자동차 상태 표시
@@ -437,7 +437,7 @@ class CarInfo:
     insurance_ = CarInsurance()           # 차량 보험 기록
     # 기타 encar 관련
     description_ = 'unknown'              # 차량 소개글
-    carID_ = 18498720                     # DB 등록 번호
+    carID_ = 00000000                     # DB 등록 번호
     articleRegistrationData_ = 'unknown'  # 판매글 등록일
 
     def __init__(self, car_id):
@@ -495,6 +495,29 @@ class CarInfo:
         else:
             self.maker_ = skencar_maker_string
 
+
+class CarSpecification:
+    # spec 정보는 http://www.caradvice.com.au/compare-specs 에서 참고함
+    maker = 'unknown'
+    model = 'unknown'
+    code = 'unknown'
+    variant = 'unknown'
+    trim = 'unknown'
+    year = 'unknown'
+    length = 'unknown'  # in mm
+    width = 'unknown'  # in mm
+    height = 'unknown'  # in mm
+    wheelbase = 'unknown'  # in mm
+    displacement = 'unknown'  # in mm
+    transmission = 'unknown'  # in mm
+    fuelType = 'unknown'
+    fuelConsumption = 'unknown'  # in mm
+    newPrice = 'unknown'  # in 10,000 won
+
+
+list_target_makers = ['BMW', '벤츠', '아우디', '폭스바겐', '미니', '렉서스', '랜드로버', '도요타', '재규어', '볼보', '혼다',
+                      '닛산', '인피니티', '지프', '푸조', '포드']
+# list_target_makers = ['GM']
 
 # ()()
 # ('') HAANJU.YOO
