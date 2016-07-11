@@ -18,5 +18,5 @@ from crawling_utils import get_car_list_from_list_page, get_car_specification
 #             break
 #         car_lists.append(cur_car_list)
 
-get_car_specification(1960, 2015)
-# get_car_specification(2016, 2017)
+cur_car_list = get_car_list_from_list_page(1)
+# get_car_specification(2005, 2017)

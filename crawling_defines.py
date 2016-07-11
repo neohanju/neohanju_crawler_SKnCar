@@ -160,7 +160,7 @@ class CarInspection:
     bExist_ = False                                 # 성능 점검 기록의 유무
     strYear_ = 'unknown'                            # 연식
     strFirstRegistrationDate_ = 'unknown'           # 최초등록일
-    nMileage_ = 'unknown'                           # 주행거리 및 계기상태
+    strMileage_ = 'unknown'                           # 주행거리 및 계기상태
     strMotorType_ = 'unknown'                       # 원동기형식
     bIllegalRemodeling_ = False                     # 불법구조변경
     strVIN_ = 'unknown'                             # 차대번호 (Vehicle Identification Number)
@@ -348,18 +348,18 @@ class CarInspection:
 class CarInsurance:
     bExist_ = False                 # 보험 기록 유무
     bChangePurpose_ = False         # 용도변경 이력
-    nChangePlateNumber_ = 0         # 번호판 변경 횟수
-    nChangeOwner_ = 0               # 소유자 변경 횟수
+    strChangePlateNumber_ = 0         # 번호판 변경 횟수
+    strChangeOwner_ = 0               # 소유자 변경 횟수
     strDamages_ = ''                # 파손 이력
-    nWrecked_ = 0                   # 전손 횟수
-    nStolen_ = 0                    # 도난 횟수
-    nSubmerged_ = 0                 # 침수 횟수
-    nFullySubmerged_ = 0            # 완전 침수 횟수
-    nPartiallySubmerged_ = 0        # 부분 침수 횟수
-    nAmountCompensationSelf_ = 0    # 자차 보상금
-    nNumCompensationSelf_ = 0       # 자차 보상 횟수
-    nAmountCompensationOthers_ = 0  # 타차 가해 보상금
-    nNumCompensationOthers_ = 0     # 타차 가해 보상 횟수
+    strWrecked_ = 0                   # 전손 횟수
+    strStolen_ = 0                    # 도난 횟수
+    strSubmerged_ = 0                 # 침수 횟수
+    strFullySubmerged_ = 0            # 완전 침수 횟수
+    strPartiallySubmerged_ = 0        # 부분 침수 횟수
+    strAmountCompensationSelf_ = 0    # 자차 보상금
+    strNumCompensationSelf_ = 0       # 자차 보상 횟수
+    strAmountCompensationOthers_ = 0  # 타차 가해 보상금 ('미확정'과 같이 숫자가 아닌 것이 있을 수 있음)
+    strNumCompensationOthers_ = 0     # 타차 가해 보상 횟수
 
     def set_change_purpose(self, str_change_purpose):
         if '없음' not in str_change_purpose:
@@ -367,24 +367,24 @@ class CarInsurance:
 
     def set_change_plate_number(self, str_change_plate_number):
         if str_change_plate_number.isdigit():
-            self.nChangePlateNumber_ = int(float(str_change_plate_number))
+            self.strChangePlateNumber_ = str_change_plate_number
 
     def set_change_owner(self, str_change_owner):
         if str_change_owner.isdigit():
-            self.nChangeOwner_ = int(float(str_change_owner))
+            self.strChangeOwner_ = str_change_owner
 
     def set_damages(self, str_damage):
         self.strDamages_ = remove_legacy_characters(str_damage)
         array_damages = self.strDamages_.split(', ')
         for cur_string in array_damages:
             if '전손' in cur_string:
-                self.nWrecked_ = int(float(cur_string.split(' : ')[1]))
+                self.strWrecked_ = cur_string.split(' : ')[1]
             elif '도난' in cur_string:
-                self.nStolen_ = int(float(cur_string.split(' : ')[1]))
+                self.strStolen_ = cur_string.split(' : ')[1]
             elif '침수' in cur_string:
-                self.nFullySubmerged_ = int(float(cur_string.split(' : ')[1]))
+                self.strFullySubmerged_ = cur_string.split(' : ')[1]
             elif '분손' in cur_string:
-                self.nPartiallySubmerged_ = int(float(cur_string.split(' : ')[1].replace(')', '')))
+                self.strPartiallySubmerged_ = cur_string.split(' : ')[1].replace(')', '')
             else:
                 print('Unable to parse the string describing damages')
 
@@ -392,15 +392,15 @@ class CarInsurance:
         if '없음' not in str_compensation_self:
             str_compensation_self = remove_legacy_characters(str_compensation_self)
             array_string = str_compensation_self.split(', ')
-            self.nNumCompensationSelf_ = int(float(array_string[0].replace('회', '')))
-            self.nAmountCompensationSelf_ = int(float(array_string[1].replace('원', '').replace(',', '')))
+            self.strNumCompensationSelf_ = array_string[0].replace('회', '')
+            self.strAmountCompensationSelf_ = array_string[1].replace('원', '').replace(',', '')
 
     def set_compensation_others(self, str_compensation_others):
         if '없음' not in str_compensation_others:
             str_compensation_others = remove_legacy_characters(str_compensation_others)
             array_string = str_compensation_others.split(', ')
-            self.nNumCompensationOthers_ = int(float(array_string[0].replace('회', '')))
-            self.nAmountCompensationOthers_ = int(float(array_string[1].replace('원', '').replace(',', '')))
+            self.strNumCompensationOthers_ = array_string[0].replace('회', '')
+            self.strAmountCompensationOthers_ = array_string[1].replace('원', '').replace(',', '')
 
 
 class CarInfo:
@@ -514,10 +514,29 @@ class CarSpecification:
     fuelConsumption = 'unknown'  # in mm
     newPrice = 'unknown'  # in 10,000 won
 
+    def set_field(self, str_field_name, str_field_value):
+        str_field_name = str_field_name.replace(' ', '').replace('\t', '').replace('\n', '')
+        if '전장(길이)' == str_field_name:
+            self.length = str_field_value
+        elif '전폭(너비)' == str_field_name:
+            self.width = str_field_value
+        elif '전고(높이)' == str_field_name:
+            self.height = str_field_value
+        elif '축거(휠베이스)' == str_field_name:
+            self.wheelbase = str_field_value
+        elif '배기량' in str_field_name:
+            self.displacement = str_field_value
+        elif '변속기' in str_field_name:
+            self.transmission = str_field_value
+        elif '연료' == str_field_name:
+            self.fuelType = str_field_value
+        elif '주행연비' == str_field_name:
+            self.fuelConsumption = str_field_value
 
-list_target_makers = ['BMW', '벤츠', '아우디', '폭스바겐', '미니', '렉서스', '랜드로버', '도요타', '재규어', '볼보', '혼다',
-                      '닛산', '인피니티', '지프', '푸조', '포드']
-# list_target_makers = ['GM']
+
+# list_target_makers = ['BMW', '벤츠', '아우디', '폭스바겐', '미니', '렉서스', '랜드로버', '도요타', '재규어', '볼보', '혼다',
+#                       '닛산', '인피니티', '지프', '푸조', '포드']
+list_target_makers = ['푸조']
 
 # ()()
 # ('') HAANJU.YOO
